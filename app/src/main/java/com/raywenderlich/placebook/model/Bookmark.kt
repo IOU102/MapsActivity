@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.raywenderlich.placebook.util.FileUtils
 import com.raywenderlich.placebook.util.ImageUtils
 
 // 1
@@ -32,17 +33,18 @@ data class Bookmark(
                 generateImageFilename(it))
         }
     }
+
+    fun deleteImage(context: Context) {
+        id?.let {
+            FileUtils.deleteFile(context, generateImageFilename(it))
+        }
+    }
+
     //3
     companion object {
         fun generateImageFilename(id: Long): String {
             // 4
             return "bookmark$id.png"
-        }
-    }
-
-    fun deleteImage(context: Context) {
-        id?.let {
-            FileUtils.deleteFile(context, generateImageFilename(it))
         }
     }
 }

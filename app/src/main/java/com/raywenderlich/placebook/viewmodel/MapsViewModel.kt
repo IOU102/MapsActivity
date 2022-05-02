@@ -49,9 +49,13 @@ class MapsViewModel(application: Application) :
                             val name: String = "",
                             val phone: String = "",
                             val categoryResourceId: Int? = null) {
-        fun getImage(context: Context) = id?.let {
-            ImageUtils.loadBitmapFromFile(context,
-                Bookmark.generateImageFilename(it))
+        fun getImage(context: Context): Bitmap? {
+            id?.let {
+                ImageUtils.loadBitmapFromFile(
+                    context,
+                    Bookmark.generateImageFilename(it))
+            }
+            return null
         }
     }
 

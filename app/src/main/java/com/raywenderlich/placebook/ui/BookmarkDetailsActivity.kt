@@ -25,6 +25,7 @@ import java.net.URLEncoder
 
 class BookmarkDetailsActivity : AppCompatActivity(),
     PhotoOptionDialogFragment.PhotoOptionDialogListener {
+
     private lateinit var databinding:
             ActivityBookmarkDetailsBinding
 
@@ -35,7 +36,7 @@ class BookmarkDetailsActivity : AppCompatActivity(),
 
     private var photoFile: File? = null
 
-    override fun onCreate(savedInstanceState: android.os.Bundle?)
+    override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
         databinding = DataBindingUtil.setContentView(this,
@@ -48,6 +49,15 @@ class BookmarkDetailsActivity : AppCompatActivity(),
     }
     private fun setupToolbar() {
         setSupportActionBar(databinding.toolbar)
+    }
+
+    private fun populateFields() {
+        bookmarkDetailsView?.let { bookmarkView ->
+            databinding.editTextName.setText(bookmarkView.name)
+            databinding.editTextPhone.setText(bookmarkView.phone)
+            databinding.editTextNotes.setText(bookmarkView.notes)
+            databinding.editTextAddress.setText(bookmarkView.address)
+        }
     }
 
     private fun populateImageView() {
@@ -111,20 +121,21 @@ class BookmarkDetailsActivity : AppCompatActivity(),
         finish()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_save -> {
                 saveChanges()
-                true
+                return true
             }
 
             R.id.action_delete -> {
                 deleteBookmark()
-                true
+                return true
             }
 
-            else -> super.onOptionsItemSelected(item)
+            else -> return super.onOptionsItemSelected(item)
         }
+    }
 
     override fun onCaptureClick() {
         // 1
@@ -147,7 +158,7 @@ class BookmarkDetailsActivity : AppCompatActivity(),
                 Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             // 7
 
-            captureIntent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT,
+            captureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                 photoUri)
             // 8
             val intentActivities = packageManager.queryIntentActivities(
@@ -177,18 +188,18 @@ class BookmarkDetailsActivity : AppCompatActivity(),
     }
 
     private fun updateImage(image: Bitmap) {
-        bookmarkDetailsView?.let {
+        val bookmarkView = bookmarkDetailsView ?: return
             databinding.imageViewPlace.setImageBitmap(image)
-            it.setImage(this, image)
-        }
+            bookmarkView.setImage(this, image)
     }
 
-    private fun getImageWithPath(filePath: String) =
-        ImageUtils.decodeFileToSize(
+    private fun getImageWithPath(filePath: String): Bitmap? {
+        return ImageUtils.decodeFileToSize(
             filePath,
             resources.getDimensionPixelSize(R.dimen.default_image_width),
             resources.getDimensionPixelSize(R.dimen.default_image_height)
         )
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int,
                                   data: Intent?) {
@@ -209,9 +220,12 @@ class BookmarkDetailsActivity : AppCompatActivity(),
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                     // 6
                     val image = getImageWithPath(photoFile.absolutePath)
-                    val bitmap = ImageUtils.rotateImageIfRequired(this,
-                        image , uri)
-                    updateImage(bitmap)
+                    image?.let {
+                        val bitmap = ImageUtils.rotateImageIfRequired(
+                            this,
+                            it, uri)
+                        updateImage(bitmap)
+                    }
                 }
 
                 REQUEST_GALLERY_IMAGE -> if (data != null && data.data != null)
@@ -228,13 +242,14 @@ class BookmarkDetailsActivity : AppCompatActivity(),
         }
     }
 
-    private fun getImageWithAuthority(uri: Uri) =
-        ImageUtils.decodeUriStreamToSize(
-            uri,
-            resources.getDimensionPixelSize(R.dimen.default_image_width),
-            resources.getDimensionPixelSize(R.dimen.default_image_height),
-            this
+    private fun getImageWithAuthority(uri: Uri): Bitmap? {
+        return ImageUtils.decodeUriStreamToSize(
+                uri,
+                resources.getDimensionPixelSize(R.dimen.default_image_width),
+                resources.getDimensionPixelSize(R.dimen.default_image_height),
+                this
         )
+    }
 
     private fun populateCategoryList() {
         // 1

@@ -11,7 +11,7 @@ import com.raywenderlich.placebook.model.Bookmark
 // 1
 class BookmarkRepo(private val context: Context) {
     // 2
-    private val db = PlaceBookDatabase.getInstance(context)
+    private val db: PlaceBookDatabase = PlaceBookDatabase.getInstance(context)
     private val bookmarkDao: BookmarkDao = db.bookmarkDao()
 
     private var categoryMap: HashMap<Place.Type, String> = buildCategoryMap()
@@ -20,6 +20,14 @@ class BookmarkRepo(private val context: Context) {
 
     val categories: List<String>
         get() = ArrayList(allCategories.keys)
+
+    fun updateBookmark(bookmark: Bookmark) {
+        bookmarkDao.updateBookmark(bookmark)
+    }
+
+    fun getBookmark(bookmarkId: Long): Bookmark {
+        return bookmarkDao.loadBookmark(bookmarkId)
+    }
 
     // 3
     fun addBookmark(bookmark: Bookmark): Long? {
@@ -31,20 +39,43 @@ class BookmarkRepo(private val context: Context) {
     fun createBookmark(): Bookmark {
         return Bookmark()
     }
+
+    fun deleteBookmark(bookmark: Bookmark) {
+        bookmark.deleteImage(context)
+        bookmarkDao.deleteBookmark(bookmark)
+    }
+
+    fun getLiveBookmark(bookmarkId: Long): LiveData<Bookmark> {
+        val bookmark = bookmarkDao.loadLiveBookmark(bookmarkId)
+        return bookmark
+    }
+
+    fun placeTypeToCategory(placeType: Place.Type): String {
+        var category = "Other"
+        if (categoryMap.containsKey(placeType)) {
+            category = categoryMap[placeType].toString()
+        }
+        return category
+    }
+
     // 5
     val allBookmarks: LiveData<List<Bookmark>>
         get() {
             return bookmarkDao.loadAll()
         }
 
-    fun getLiveBookmark(bookmarkId: Long): LiveData<Bookmark> =
-        bookmarkDao.loadLiveBookmark(bookmarkId)
-
-    fun updateBookmark(bookmark: Bookmark) {
-        bookmarkDao.updateBookmark(bookmark)
+    fun getCategoryResourceId(placeCategory: String): Int? {
+        return allCategories[placeCategory]
     }
-    fun getBookmark(bookmarkId: Long): Bookmark {
-        return bookmarkDao.loadBookmark(bookmarkId)
+
+    private fun buildCategories() : HashMap<String, Int> {
+        return hashMapOf(
+            "Gas" to R.drawable.ic_gas,
+            "Lodging" to R.drawable.ic_lodging,
+            "Other" to R.drawable.ic_other,
+            "Restaurant" to R.drawable.ic_restaurant,
+            "Shopping" to R.drawable.ic_shopping
+        )
     }
 
     private fun buildCategoryMap() : HashMap<Place.Type, String> {
@@ -70,32 +101,5 @@ class BookmarkRepo(private val context: Context) {
             Place.Type.LODGING to "Lodging",
             Place.Type.ROOM to "Lodging"
         )
-    }
-
-    fun placeTypeToCategory(placeType: Place.Type): String {
-        var category = "Other"
-        if (categoryMap.containsKey(placeType)) {
-            category = categoryMap[placeType].toString()
-        }
-        return category
-    }
-
-    private fun buildCategories() : HashMap<String, Int> {
-        return hashMapOf(
-            "Gas" to R.drawable.ic_gas,
-            "Lodging" to R.drawable.ic_lodging,
-            "Other" to R.drawable.ic_other,
-            "Restaurant" to R.drawable.ic_restaurant,
-            "Shopping" to R.drawable.ic_shopping
-        )
-    }
-
-    fun getCategoryResourceId(placeCategory: String): Int? {
-        return allCategories[placeCategory]
-    }
-
-    fun deleteBookmark(bookmark: Bookmark) {
-        bookmark.deleteImage(context)
-        bookmarkDao.deleteBookmark(bookmark)
     }
 }

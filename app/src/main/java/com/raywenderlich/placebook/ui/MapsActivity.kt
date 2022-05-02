@@ -1,14 +1,12 @@
 package com.raywenderlich.placebook.ui
 
-import BookmarkListAdapter
+
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -16,19 +14,20 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.location.*
-
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.raywenderlich.placebook.databinding.ActivityMapsBinding
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
@@ -39,6 +38,8 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.raywenderlich.placebook.R
 import com.raywenderlich.placebook.adapter.BookmarkInfoWindowAdapter
+import com.raywenderlich.placebook.adapter.BookmarkListAdapter
+import com.raywenderlich.placebook.databinding.ActivityMapsBinding
 import com.raywenderlich.placebook.viewmodel.MapsViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -49,11 +50,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var placesClient: PlacesClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var binding: ActivityMapsBinding
-
-    private lateinit var bookmarkListAdapter: BookmarkListAdapter
 
     private val mapsViewModel by viewModels<MapsViewModel>()
+
+    private lateinit var bookmarkListAdapter: BookmarkListAdapter
 
     private lateinit var databinding: ActivityMapsBinding
 
@@ -139,31 +139,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         private const val AUTOCOMPLETE_REQUEST_CODE = 2
     }
 
-    @SuppressLint("MissingPermission")
     private fun getCurrentLocation() {
-        // 1
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
             PackageManager.PERMISSION_GRANTED) {
-            // 2
             requestLocationPermissions()
         } else {
-
             map.isMyLocationEnabled = true
-
-            // 3
             fusedLocationClient.lastLocation.addOnCompleteListener {
                 val location = it.result
                 if (location != null) {
-                    // 4
-                    val latLng = LatLng(location.latitude,
-                        location.longitude)
-
-                    // 6
+                    val latLng = LatLng(location.latitude, location.longitude)
                     val update = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
-                    // 7
                     map.moveCamera(update)
                 } else {
-                    // 8
                     Log.e(TAG, "No location found")
                 }
             }
@@ -233,8 +221,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun displayPoiGetPhotoStep(place: Place) {
         // 1
-        val photoMetadata = place
-            .getPhotoMetadatas()?.get(0)
+        val photoMetadata = place.photoMetadatas?.get(0)
         // 2
         if (photoMetadata == null) {
             displayPoiDisplayStep(place, null)
@@ -417,9 +404,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             // 4
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
         } catch (e: GooglePlayServicesRepairableException) {
+            Log.e("MAPS", "searchAtCurrentLocation",e)
             Toast.makeText(this, "Problems Searching",
                 Toast.LENGTH_LONG).show()
         } catch (e: GooglePlayServicesNotAvailableException) {
+            Log.e("MAPS", "searchAtCurrentLocation",e)
             Toast.makeText(this,
                 "Problems Searching. Google Play Not available", Toast.LENGTH_LONG).show()
         }

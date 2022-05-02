@@ -28,9 +28,13 @@ class BookmarkDetailsViewModel(application: Application) :
                                    var longitude: Double = 0.0,
                                    var latitude: Double = 0.0,
                                    var placeId: String? = null) {
-        fun getImage(context: Context) = id?.let {
-            ImageUtils.loadBitmapFromFile(context,
-                Bookmark.generateImageFilename(it))
+        fun getImage(context: Context): Bitmap? {
+            id?.let {
+                return ImageUtils.loadBitmapFromFile(
+                        context,
+                        Bookmark.generateImageFilename(it))
+            }
+            return null
         }
 
         fun setImage(context: Context, image: Bitmap) {
@@ -60,7 +64,7 @@ class BookmarkDetailsViewModel(application: Application) :
         val bookmark = bookmarkRepo.getLiveBookmark(bookmarkId)
         bookmarkDetailsView = Transformations.map(bookmark)
         { repoBookmark ->
-            repoBookmark?.let { repoBookmark ->
+            repoBookmark?.let {
                 bookmarkToBookmarkView(repoBookmark)
             }
         }
@@ -74,18 +78,18 @@ class BookmarkDetailsViewModel(application: Application) :
         return bookmarkDetailsView
     }
 
-    private fun bookmarkViewToBookmark(bookmarkView:
+    private fun bookmarkViewToBookmark(bookmarkDetailsView:
                                        BookmarkDetailsView): Bookmark? {
-        val bookmark = bookmarkView.id?.let {
+        val bookmark = bookmarkDetailsView.id?.let {
             bookmarkRepo.getBookmark(it)
         }
         if (bookmark != null) {
-            bookmark.id = bookmarkView.id
-            bookmark.name = bookmarkView.name
-            bookmark.phone = bookmarkView.phone
-            bookmark.address = bookmarkView.address
-            bookmark.notes = bookmarkView.notes
-            bookmark.category = bookmarkView.category
+            bookmark.id = bookmarkDetailsView.id
+            bookmark.name = bookmarkDetailsView.name
+            bookmark.phone = bookmarkDetailsView.phone
+            bookmark.address = bookmarkDetailsView.address
+            bookmark.notes = bookmarkDetailsView.notes
+            bookmark.category = bookmarkDetailsView.category
         }
         return bookmark
     }
@@ -114,7 +118,7 @@ class BookmarkDetailsViewModel(application: Application) :
                 bookmarkRepo.getBookmark(it)
             }
             bookmark?.let {
-                bookmarkRepo.deleteBookmark(it,)
+                bookmarkRepo.deleteBookmark(it)
             }
         }
     }

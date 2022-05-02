@@ -1,3 +1,5 @@
+package com.raywenderlich.placebook.ui
+
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
@@ -68,12 +70,13 @@ class PhotoOptionDialogFragment : DialogFragment() {
                 context.packageManager) != null)
         }
         // 15
-        fun newInstance(context: Context) =
+        fun newInstance(context: Context): PhotoOptionDialogFragment? {
             // 16
-            if (canPick(context) || canCapture(context)) {
+            return if (canPick(context) || canCapture(context)) {
                 PhotoOptionDialogFragment()
             } else {
                 null
             }
+        }
     }
 }
